@@ -1,13 +1,18 @@
-FROM oven/bun:latest
+FROM oven/bun:1.3.6
 
 WORKDIR /usr/src/app
 
-COPY . .
+# Copy only package manager files first for caching
+COPY package.json bun.lockb turbo.json ./
+COPY apps ./apps
+COPY packages ./packages
 
+# Install dependencies
 RUN bun install
 
-RUN bun run generate:db
+# ✅ Generate Prisma Client properly
+RUN cd packages/db && bunx prisma generate
 
 EXPOSE 8080
 
-CMD [ "bun", "start:backend" ]
+CMD ["bun", "run", "start:backend"]
